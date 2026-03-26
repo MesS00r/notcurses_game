@@ -1,0 +1,113 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "build",
+            "type": "shell",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "windows": {
+                "command": "powershell",
+                "args": [
+                    "-c",
+                    "mingw32-make"
+                ]
+            },
+            "linux": {
+                "command": "bash",
+                "args": [
+                    "-c",
+                    "make"
+                ]
+            },
+            "osx": {
+                "command": "bash",
+                "args": [
+                    "-c",
+                    "make"
+                ]
+            }
+        },
+        {
+            "label": "build & run",
+            "type": "shell",
+            "windows": {
+                "command": "powershell",
+                "args": [
+                    "-c",
+                    "'mingw32-make run'"
+                ]
+            },
+            "linux": {
+                "command": "bash",
+                "args": [
+                    "-c",
+                    "'make run'"
+                ]
+            },
+            "osx": {
+                "command": "bash",
+                "args": [
+                    "-c",
+                    "'make run'"
+                ]
+            }
+        },
+        {
+            "label": "clean",
+            "type": "shell",
+            "windows": {
+                "command": "powershell",
+                "args": [
+                    "-c",
+                    "'mingw32-make clean'"
+                ]
+            },
+            "linux": {
+                "command": "bash",
+                "args": [
+                    "-c",
+                    "'make clean'"
+                ]
+            },
+            "osx": {
+                "command": "bash",
+                "args": [
+                    "-c",
+                    "'make clean'"
+                ]
+            }
+        },
+        {
+            "label": "Valgrind Check (Kitty)",
+            "type": "shell",
+            "command": "kitty",
+            "args": [
+                "--directory", "${workspaceFolder}/build",
+                "--",
+                "valgrind", 
+                "-q",
+                "--smc-check=all-non-file",
+                "--leak-check=full",
+                "--show-leak-kinds=definite,possible",
+                // "--show-leak-kinds=all",
+                "--track-origins=yes",
+                "--log-file=${workspaceFolder}/valgrind.log", 
+                "./notcurses_game",
+
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}/build"
+            },
+            "dependsOn": [
+                "CMake: build" 
+            ],
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "silent"
+            }
+        }
+    ]
+}
