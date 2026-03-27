@@ -1,53 +1,61 @@
 #include "debug_plane.h"
 
-void read_input(struct DebugPlane *debug_p, ncinput *ni);
-const DebugPacket* get_packet(struct DebugPlane *debug_p);
-
 struct DebugPlane {
     struct ncplane *plane;
+
     uint16_t cols, rows;
     uint16_t x, y;
-    char *name;
-    DebugPacket packet;
+    const char *name;
 
-    void (*read_input)(struct DebugPlane *debug_p, ncinput *ni);
-    const DebugPacket* (*get_packet)(struct DebugPlane *debug_p);
+    uint64_t channels;
+    uint32_t style;
+    const char *bg_char;
 };
 
-DebugPlane* debug_panel_init(struct DebugOptions *opts, struct ncplane *stdplane) {
+DebugPlane* debug_plane_init(DebugOptions *opts, struct ncplane *stdplane) {
     DebugPlane *debug_p = (DebugPlane*)malloc(sizeof(DebugPlane));
-    if (debug_p) {
-        debug_p->cols = opts->cols;
-        debug_p->rows = opts->rows;
-        debug_p->x = opts->x;
-        debug_p->y = opts->y;
-        debug_p->name = opts->name;
-        
-        debug_p->packet.is_ctrl = false;
-        debug_p->packet.key = (uint32_t)-1;
+    if (!debug_p) return NULL;
 
-        debug_p->read_input = read_input;
-        debug_p->get_packet = get_packet;
-
-
-        struct ncplane_options p_opt = {
-            .cols = debug_p->cols,
-            .rows = debug_p->rows,
-            .x = debug_p->x,
-            .y = debug_p->y,
-            .name = debug_p->name
-        };
+    DebugOptions default_opts = DEBUG_OPTS_DEFAULT;
+    if (!opts) opts = &default_opts;
     
-        debug_p->plane = ncplane_create(stdplane, &p_opt);
+    if (opts->cols == 0) opts->cols = 1;
+    if (opts->rows == 0) opts->rows = 1;
+    if (opts->name == NULL) opts->name = "none";
+    if (opts->bg_char == NULL) opts->bg_char = " ";
+
+    debug_p->cols = opts->cols;
+    debug_p->rows = opts->rows;
+    debug_p->x = opts->x;
+    debug_p->y = opts->y;
+    debug_p->name = opts->name;
+
+    debug_p->style = opts->style;
+    debug_p->bg_char = opts->bg_char;
+
+    struct ncplane_options p_opts = {
+        .cols = debug_p->cols,
+        .rows = debug_p->rows,
+        .x = debug_p->x,
+        .y = debug_p->y,
+        .name = debug_p->name
+    };
+    debug_p->plane = ncplane_create(stdplane, &p_opts);
+    if (!debug_p->plane) {
+        free(debug_p);
+        return NULL;
     }
+
+    debug_p->channels = 0;
+    ncchannels_set_bg_rgb(&debug_p->channels, opts->bg_rgb);
+    ncchannels_set_fg_rgb(&debug_p->channels, opts->fg_rgb);
+    ncplane_set_base(debug_p->plane, debug_p->bg_char, 0, debug_p->channels);
+    ncplane_set_styles(debug_p->plane, debug_p->style);
+
     return debug_p;
 }
 
-void read_input(struct DebugPlane *debug_p, ncinput *ni) {
-    debug_p->packet.key = ni->id;
-    debug_p->packet.is_ctrl = ni->ctrl;
-}
-
-const DebugPacket* get_packet(struct DebugPlane *debug_p) {
-    return &debug_p->packet;
+struct ncplane* debug_plane_get_plane(DebugPlane* debug_p) {
+    if (!debug_p) return NULL;
+    return debug_p->plane;
 }
