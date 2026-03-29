@@ -3,12 +3,14 @@
 
 #include <notcurses/notcurses.h>
 #include <gamelib/debug_plane.h>
+#include <gamelib/move_obj/player.h>
 
 typedef struct World World;
 
 World* world_init(notcurses_options *opts);
 
 void world_set_debug_plane(World *world, DebugPlane *debug_p);
+void world_set_player(World *world, Player* player);
 void world_set_timeout(World *world, uint32_t msec);
 
 uint32_t world_getch(World *world);
@@ -17,6 +19,7 @@ uint32_t world_getch_nblock(World *world);
 struct ncplane* world_get_stdplane(World *world);
 
 void world_debug_plane_prerender(World *world);
+void world_player_prerender(World *world);
 void world_render(World *world);
 
 void world_read_term_size(World *world, uint32_t *rows, uint32_t *cols);

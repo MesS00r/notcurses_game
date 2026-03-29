@@ -3,7 +3,7 @@
 
 #include <notcurses/notcurses.h>
 
-#define  DEBUG_OPTS_DEFAULT (DebugOptions){ \
+#define DEBUG_OPTS_DEFAULT (DebugOptions){  \
     .cols = 1, .rows = 1,                   \
     .x = 0, .y = 0,                         \
     .name = "debug",                        \
@@ -25,7 +25,7 @@ typedef struct DebugOptions {
     const char *bg_char;
 } DebugOptions;
 
-DebugPlane* debug_plane_init(DebugOptions *opts, struct ncplane *stdplane);
+DebugPlane* debug_plane_init(DebugOptions *opts, struct ncplane *parent_plane);
 
 struct ncplane* debug_plane_get_plane(DebugPlane* debug_p);
 

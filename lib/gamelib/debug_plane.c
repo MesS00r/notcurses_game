@@ -12,7 +12,7 @@ struct DebugPlane {
     const char *bg_char;
 };
 
-DebugPlane* debug_plane_init(DebugOptions *opts, struct ncplane *stdplane) {
+DebugPlane* debug_plane_init(DebugOptions *opts, struct ncplane *parent_plane) {
     DebugPlane *debug_p = (DebugPlane*)malloc(sizeof(DebugPlane));
     if (!debug_p) return NULL;
 
@@ -40,7 +40,7 @@ DebugPlane* debug_plane_init(DebugOptions *opts, struct ncplane *stdplane) {
         .y = debug_p->y,
         .name = debug_p->name
     };
-    debug_p->plane = ncplane_create(stdplane, &p_opts);
+    debug_p->plane = ncplane_create(parent_plane, &p_opts);
     if (!debug_p->plane) {
         free(debug_p);
         return NULL;

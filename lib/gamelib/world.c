@@ -6,11 +6,13 @@ struct World {
     struct ncinput ni;
     struct timespec timeout;
 
-    uint32_t key;
-    uint32_t modifiers;
+    uint32_t key, modifiers;
 
     DebugPlane *debug_p;
     struct ncplane *debug_true_plane;
+
+    Player *player;
+    PlayerPacket *player_packet;
 };
 
 World* world_init(notcurses_options *opts) {
@@ -44,6 +46,14 @@ void world_set_debug_plane(World *world, DebugPlane *debug_p) {
 
     world->debug_p = debug_p;
     world->debug_true_plane = debug_plane_get_plane(debug_p);
+}
+
+void world_set_player(World *world, Player* player) {
+    if (!world) return;
+    if (!player) return;
+
+    world->player = player;
+    world->player_packet = player_get_packet(player);
 }
 
 void world_set_timeout(World *world, uint32_t msec) {
@@ -118,7 +128,7 @@ void world_debug_plane_prerender(World *world) {
 
     if (key == 0) return;
     ncplane_erase(world->debug_true_plane);
-    
+
     ncplane_printf_yx(world->debug_true_plane, 0, 0, "Key ID: %u ", key);
 
     ncplane_printf_yx(world->debug_true_plane, 1, 0, "Ctrl:  %s ", is_ctrl  ? "YES" : "NO");
@@ -128,6 +138,20 @@ void world_debug_plane_prerender(World *world) {
 
     ncplane_printf_yx(world->debug_true_plane, 5, 0, "CapsLock: %s ", is_caps_lock ? "YES" : "NO");
     ncplane_printf_yx(world->debug_true_plane, 6, 0, "NumLock:  %s ", is_num_lock  ? "YES" : "NO");
+}
+
+void world_player_prerender(World *world) {
+    if (!world) return;
+    if (!world->player) return;
+
+    uint8_t cols = 3;
+
+    for (uint8_t i = 0; i < 9; i++) {
+        uint8_t y = i / cols;
+        uint8_t x = i % cols;
+
+        ncplane_putchar_yx(world->player_packet->plane, y, x, world->player_packet->playerstr[i]);
+    }
 }
 
 void world_render(World *world) {

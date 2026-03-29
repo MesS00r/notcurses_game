@@ -1,5 +1,0 @@
-==345164== 48 bytes in 1 blocks are definitely lost in loss record 109 of 245
-==345164==    at 0x4844818: malloc (vg_replace_malloc.c:446)
-==345164==    by 0x109294: debug_plane_init (debug_plane.c:16)
-==345164==    by 0x109851: main (main.c:33)
-==345164== 
