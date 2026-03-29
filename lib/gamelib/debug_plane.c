@@ -59,3 +59,9 @@ struct ncplane* debug_plane_get_plane(DebugPlane* debug_p) {
     if (!debug_p) return NULL;
     return debug_p->plane;
 }
+
+void debug_plane_destroy(DebugPlane* debug_p) {
+    if (!debug_p) return;
+
+    free(debug_p);
+}

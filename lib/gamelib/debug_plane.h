@@ -29,4 +29,6 @@ DebugPlane* debug_plane_init(DebugOptions *opts, struct ncplane *stdplane);
 
 struct ncplane* debug_plane_get_plane(DebugPlane* debug_p);
 
+void debug_plane_destroy(DebugPlane* debug_p);
+
 #endif //DEBUG_PLANE_H_INCLUDED
