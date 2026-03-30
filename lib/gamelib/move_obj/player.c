@@ -72,6 +72,15 @@ PlayerPacket* player_get_packet(Player* player) {
     return &player->packet;
 }
 
+// void player_move(World *world) {
+//     switch (world->key) {
+//     case 'w': case 'W': break;
+//     case 's': case 'S': break;
+//     case 'a': case 'A': break;
+//     case 'd': case 'D': break;
+//     }
+// }
+
 void player_destroy(Player* player) {
     if (!player) return;
 

@@ -150,6 +150,7 @@ void world_player_prerender(World *world) {
         uint8_t y = i / cols;
         uint8_t x = i % cols;
 
+        if (world->player_packet->playerstr[i] == ' ') continue;
         ncplane_putchar_yx(world->player_packet->plane, y, x, world->player_packet->playerstr[i]);
     }
 }

@@ -31,6 +31,7 @@ typedef struct PlayerPacket {
 Player* player_init(PlayerOptions *opts, struct ncplane *parent_plane);
 
 PlayerPacket* player_get_packet(Player* player);
+// void player_move(World *world);
 
 void player_destroy(Player* player);
 

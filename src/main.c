@@ -38,7 +38,14 @@ int main(void) {
     }
     world_set_debug_plane(world, debug_p);
 
-    PlayerOptions p_opts = PLAYER_OPTS_DEFAULT;
+    PlayerOptions p_opts = {
+        .x = 10, .y = 10,
+        .name = "player",
+        
+        .bg_char = ".",
+        .bg_rgb = 0xff7f00,
+        .fg_rgb = 0xffffff
+    };
     p_opts.x = 10, p_opts.y = 10;
     Player *player = player_init(&p_opts, stdplane);
     if (!player) {
@@ -63,7 +70,7 @@ int main(void) {
 
         key = world_getch(world);
         
-        if (key == 'q' || key == NCKEY_SIGNAL) break;
+        if (key == 'q' || key == 'Q' || key == NCKEY_SIGNAL) break;
         if ((key == 'c' || key == 'C') && world_what_mod(world, NCKEY_MOD_CTRL)) break;
         
         world_debug_plane_prerender(world);
