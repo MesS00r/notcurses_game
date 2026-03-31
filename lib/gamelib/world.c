@@ -1,44 +1,63 @@
 #include "world.h"
 
+// -----------------------------------------------------------------------
+// СТРУКТУРА WORLD
+// -----------------------------------------------------------------------
+
 struct World {
     struct notcurses *nc;
-    struct ncplane *stdplane;
-    struct ncinput ni;
-    struct timespec timeout;
+    struct ncplane   *stdplane;
+    struct ncinput   ni;
+    struct timespec  timeout;
 
-    uint32_t key, modifiers;
+    chtype_32 key;
+    uint32_t  modifiers;
 
-    DebugPlane *debug_p;
+    DebugPlane     *debug_p;
     struct ncplane *debug_true_plane;
 
-    Player *player;
+    Player       *player;
     PlayerPacket *player_packet;
 };
 
+// -----------------------------------------------------------------------
+// ИНИЦИЛИЗАТОР WORLD
+// -----------------------------------------------------------------------
+
 World* world_init(notcurses_options *opts) {
-    World *world = (World*)malloc(sizeof(World));
+    World *world = calloc(
+        1, 
+        sizeof(World)
+    );
     if (!world) return NULL;
 
-    world->nc = notcurses_init(opts, NULL);
+    world->nc = notcurses_init(
+        opts, 
+        NULL
+    );
     if (!world->nc) {
         free(world);
         return NULL;
     }
     world->stdplane = notcurses_stdplane(world->nc);
-    world->ni = (struct ncinput){};
-    world->timeout = (struct timespec){
+    world->ni       = (struct ncinput){};
+    world->timeout  = (struct timespec){
         .tv_sec = 0,
         .tv_nsec = 0
     };
 
-    world->key = 0;
+    world->key       = 0;
     world->modifiers = 0;
 
-    world->debug_p = NULL;
+    world->debug_p          = NULL;
     world->debug_true_plane = NULL;
 
     return world;
 }
+
+// -----------------------------------------------------------------------
+// СЕТТЕРЫ WORLD
+// -----------------------------------------------------------------------
 
 void world_set_debug_plane(World *world, DebugPlane *debug_p) {
     if (!world) return;
@@ -72,26 +91,40 @@ void world_set_timeout(World *world, uint32_t msec) {
     };
 }
 
-uint32_t world_getch(World *world) {
-    if (!world) return (uint32_t)-1;
+// -----------------------------------------------------------------------
+// ГЕТТЕРЫ WORLD
+// -----------------------------------------------------------------------
+
+chtype_32 world_getch(World *world) {
+    if (!world) return CH_ERR_CODE;
     
-    world->key = notcurses_get(world->nc, &world->timeout, &world->ni);
+    world->key = notcurses_get(
+        world->nc, 
+        &world->timeout, 
+        &world->ni
+    );
     world->modifiers = world->ni.modifiers;
     return world->key;
 }
 
-uint32_t world_getch_block(World *world) {
-    if (!world) return (uint32_t)-1;
+chtype_32 world_getch_block(World *world) {
+    if (!world) return CH_ERR_CODE;
     
-    world->key = notcurses_get_blocking(world->nc, &world->ni);
+    world->key = notcurses_get_blocking(
+        world->nc, 
+        &world->ni
+    );
     world->modifiers = world->ni.modifiers;
     return world->key;
 }
 
-uint32_t world_getch_nblock(World *world) {
-    if (!world) return (uint32_t)-1;
+chtype_32 world_getch_nblock(World *world) {
+    if (!world) return CH_ERR_CODE;
     
-    world->key = notcurses_get_nblock(world->nc, &world->ni);
+    world->key = notcurses_get_nblock(
+        world->nc, 
+        &world->ni
+    );
     world->modifiers = world->ni.modifiers;
     return world->key;
 }
@@ -102,11 +135,17 @@ struct ncplane* world_get_stdplane(World *world) {
     return world->stdplane;
 }
 
+// -----------------------------------------------------------------------
+// МЕТОДЫ ОТРИСОВКИ WORLD
+// -----------------------------------------------------------------------
+
 void world_debug_plane_prerender(World *world) {
     if (!world) return;
     if (!world->debug_p) return;
 
-    uint32_t key = 0;
+    struct ncplane *plane = world->debug_true_plane;
+
+    chtype_32 key = 0;
 
     bool is_ctrl      = false;
     bool is_alt       = false;
@@ -127,22 +166,25 @@ void world_debug_plane_prerender(World *world) {
     }
 
     if (key == 0) return;
-    ncplane_erase(world->debug_true_plane);
+    ncplane_erase(plane);
 
-    ncplane_printf_yx(world->debug_true_plane, 0, 0, "Key ID: %u ", key);
+    ncplane_printf_yx(plane, 0, 0, "Key ID: %c:%u ", key, key);
 
-    ncplane_printf_yx(world->debug_true_plane, 1, 0, "Ctrl:  %s ", is_ctrl  ? "YES" : "NO");
-    ncplane_printf_yx(world->debug_true_plane, 2, 0, "Alt:   %s ", is_alt   ? "YES" : "NO");
-    ncplane_printf_yx(world->debug_true_plane, 3, 0, "Shift: %s ", is_shift ? "YES" : "NO");
-    ncplane_printf_yx(world->debug_true_plane, 4, 0, "Super: %s ", is_super ? "YES" : "NO");
+    ncplane_printf_yx(plane, 1, 0, "Ctrl:  %s ", is_ctrl  ? "YES" : "NO");
+    ncplane_printf_yx(plane, 2, 0, "Alt:   %s ", is_alt   ? "YES" : "NO");
+    ncplane_printf_yx(plane, 3, 0, "Shift: %s ", is_shift ? "YES" : "NO");
+    ncplane_printf_yx(plane, 4, 0, "Super: %s ", is_super ? "YES" : "NO");
 
-    ncplane_printf_yx(world->debug_true_plane, 5, 0, "CapsLock: %s ", is_caps_lock ? "YES" : "NO");
-    ncplane_printf_yx(world->debug_true_plane, 6, 0, "NumLock:  %s ", is_num_lock  ? "YES" : "NO");
+    ncplane_printf_yx(plane, 5, 0, "CapsLock: %s ", is_caps_lock ? "YES" : "NO");
+    ncplane_printf_yx(plane, 6, 0, "NumLock:  %s ", is_num_lock  ? "YES" : "NO");
 }
 
 void world_player_prerender(World *world) {
     if (!world) return;
     if (!world->player) return;
+
+    struct ncplane *plane = world->player_packet->plane;
+    const char *playerstr = world->player_packet->playerstr;
 
     uint8_t cols = 3;
 
@@ -150,8 +192,12 @@ void world_player_prerender(World *world) {
         uint8_t y = i / cols;
         uint8_t x = i % cols;
 
-        if (world->player_packet->playerstr[i] == ' ') continue;
-        ncplane_putchar_yx(world->player_packet->plane, y, x, world->player_packet->playerstr[i]);
+        if (playerstr[i] == ' ') continue;
+        ncplane_putchar_yx(
+            plane, 
+            y, x, 
+            playerstr[i]
+        );
     }
 }
 
@@ -161,10 +207,17 @@ void world_render(World *world) {
     notcurses_render(world->nc);
 }
 
+// -----------------------------------------------------------------------
+// ДРУГИЕ МЕТОДЫ WORLD
+// -----------------------------------------------------------------------
+
 void world_read_term_size(World *world, uint32_t *rows, uint32_t *cols) {
     if (!world) return;
     
-    notcurses_term_dim_yx(world->nc, rows, cols);
+    notcurses_term_dim_yx(
+        world->nc, 
+        rows, cols
+    );
 }
 
 bool world_what_mod(World *world, uint8_t mod) {
@@ -176,10 +229,15 @@ bool world_what_mod(World *world, uint8_t mod) {
     return spec_key;
 }
 
+// -----------------------------------------------------------------------
+// ДЕКОНСТРУКТОР WORLD
+// -----------------------------------------------------------------------
+
 void world_destroy(World *world) {
     if (!world) return;
     
     notcurses_stop(world->nc);
     debug_plane_destroy(world->debug_p);
+    player_destroy(world->player);
     free(world);
 }
